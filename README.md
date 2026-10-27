@@ -1,5 +1,9 @@
 # Safer Agent Memory Standard (SAMS)
 
+[![CI](https://github.com/Final-Frontier-Ventures/safer-agent-memory/actions/workflows/ci.yml/badge.svg)](https://github.com/Final-Frontier-Ventures/safer-agent-memory/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/safer-agent-memory)](https://pypi.org/project/safer-agent-memory/)
+[![License](https://img.shields.io/badge/license-Apache--2.0%20%2F%20CC%20BY%204.0-blue)](#license)
+
 **Security-first memory for AI agents.** Scoped memory tiers, taint tracking, tenant isolation and human-reviewed consolidation, as a short standard, a zero-dependency Python reference implementation, a conformance test suite and a Claude Code plugin that applies it to your project.
 
 > Your agent's memory is a persistence mechanism for prompt injection. One poisoned web page, scan result or email, written to memory, is read by every future session. SAMS is a set of rules and tests that stops that from happening.
@@ -43,7 +47,7 @@ Not using Claude Code? Give `STANDARD.md` to any coding agent and ask it to foll
 ### Use the library
 
 ```bash
-pip install safer-agent-memory        # or: pip install -e . from a clone
+pip install safer-agent-memory           # import sams; CLI: sams
 ```
 
 ```python
