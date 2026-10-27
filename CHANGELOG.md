@@ -6,3 +6,4 @@
 - Python reference implementation (stdlib only): `AgentSession`, `DreamerSession`, `Owner`, `SQLiteBackend` (directory per scope), redaction and review flags, derived file index, `sams` CLI.
 - Conformance suite and SQLite-specific defence-in-depth tests.
 - Claude Code plugin with the `adopt-memory` skill; templates for Claude Code repos, Docker Compose isolation and dreaming.
+- CI on Python 3.10-3.14 (Linux, macOS), package build check, PyPI trusted publishing on release, SHA-pinned actions with Dependabot.

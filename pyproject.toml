@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,14 +8,33 @@ version = "0.1.0"
 description = "Security-first memory for AI agents: scoped tiers, taint tracking, tenant isolation and reviewed consolidation."
 readme = "README.md"
 license = "Apache-2.0"
+license-files = ["LICENSE", "LICENSE-docs", "NOTICE"]
+authors = [{ name = "Final Frontier Ventures", email = "lesith@ffvlk.com" }]
 requires-python = ">=3.10"
 dependencies = []
 keywords = ["ai-agents", "memory", "llm", "prompt-injection", "ai-security", "claude-code", "mcp"]
 classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Topic :: Security",
   "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Typing :: Typed",
 ]
+
+[project.urls]
+Homepage = "https://github.com/Final-Frontier-Ventures/safer-agent-memory"
+Standard = "https://github.com/Final-Frontier-Ventures/safer-agent-memory/blob/main/STANDARD.md"
+Issues = "https://github.com/Final-Frontier-Ventures/safer-agent-memory/issues"
+Changelog = "https://github.com/Final-Frontier-Ventures/safer-agent-memory/blob/main/CHANGELOG.md"
+Security = "https://github.com/Final-Frontier-Ventures/safer-agent-memory/blob/main/SECURITY.md"
 
 [project.optional-dependencies]
 test = ["pytest>=8"]
@@ -25,6 +44,9 @@ sams = "sams.cli:main"
 
 [tool.setuptools]
 packages = ["sams"]
+
+[tool.setuptools.package-data]
+sams = ["py.typed"]
 
 [tool.pytest.ini_options]
 testpaths = ["conformance", "tests"]
