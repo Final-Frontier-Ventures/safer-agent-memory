@@ -5,7 +5,7 @@
     sams redact FILE...                  print redacted copies (for transcripts)
     sams review list   --base DIR --scope SCOPE
     sams review show   --base DIR --scope SCOPE ID
-    sams review accept --base DIR --scope SCOPE ID
+    sams review accept --base DIR --scope SCOPE ID --digest SHA256
     sams review reject --base DIR --scope SCOPE ID [--note TEXT]
     sams pending list   --base DIR --scope SCOPE
     sams pending show   --base DIR --scope SCOPE PATH SESSION
@@ -58,6 +58,9 @@ def main(argv: list[str] | None = None) -> int:
             sp.add_argument("id", type=int)
         if name == "reject":
             sp.add_argument("--note", default="")
+        if name == "accept":
+            sp.add_argument("--digest", required=True,
+                            help="fingerprint of the proposal you reviewed (shown by 'review show')")
 
     pd = sub.add_parser("pending", help="pending agent writes")
     pds = pd.add_subparsers(dest="action", required=True)
@@ -109,8 +112,10 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps({k: pr[k] for k in ("id", "path", "base_version", "flags", "occurrences",
                                                  "rationale", "evidence")}, indent=2))
             print(pr["diff"])
+            if pr["decision"] is None:
+                print(f"accept with: sams review accept --base {a.base} --scope {a.scope} {pr['id']} --digest {pr['digest']}")
         elif a.action == "accept":
-            e = o.accept_proposal(a.scope, a.id); print(f"accepted -> {e['path']} v{e['version']}")
+            e = o.accept_proposal(a.scope, a.id, a.digest); print(f"accepted -> {e['path']} v{e['version']}")
         else:
             o.reject_proposal(a.scope, a.id, a.note); print("rejected")
     elif a.cmd == "pending":

@@ -71,8 +71,8 @@ Agent writes to `run:s-001` land immediately. Writes to `tenant:acme` are queued
 ```bash
 python templates/dreaming/dream.py --base memory --scope tenant:acme --transcripts logs/acme
 sams review list   --base memory --scope tenant:acme
-sams review show   --base memory --scope tenant:acme 3
-sams review accept --base memory --scope tenant:acme 3
+sams review show   --base memory --scope tenant:acme 3      # prints the diff and its fingerprint
+sams review accept --base memory --scope tenant:acme 3 --digest <fingerprint>
 sams pending list  --base memory --scope tenant:acme
 sams pending show  --base memory --scope tenant:acme waf.md s-001
 sams history       --base memory --scope tenant:acme methodology/waf.md
@@ -102,7 +102,7 @@ pytest
 | C9 | Planted secrets never reach a stored proposal, diff or pending write |
 | C10 | Instruction-like and sensitive proposals are flagged |
 | C11 | Pending entries are never served as curated memory; memory text cannot escape its context wrapper |
-| C12 | The owner promotes exactly what they reviewed; later changes cause a conflict |
+| C12 | The owner promotes exactly what they reviewed; a later change to a pending write, a proposal or its base is refused |
 
 To test another backend, implement `sams.backend.Backend` and add a factory to `conformance/conftest.py`.
 

@@ -1,6 +1,6 @@
 {
   "name": "safer-agent-memory",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Apply the Safer Agent Memory Standard to a project: scoped memory tiers, taint tracking, tenant isolation and reviewed consolidation (dreaming).",
   "author": {
     "name": "Final Frontier Ventures",

@@ -57,7 +57,7 @@ Every memory entry above `run` has a status:
 
 Agents MUST NOT be able to create or change `active` entries outside `run`.
 
-**Review integrity.** The owner MUST promote exactly the content they reviewed. Pending entries and proposals carry a version; if the entry, or the curated entry it was based on, changes after review, promotion MUST fail with a conflict rather than apply the newer content. Version numbers for a path MUST NOT restart (for example after an entry is retired and written again), so a version number always identifies one historical content.
+**Review integrity.** The owner MUST promote exactly the content they reviewed. Pending entries carry a version; proposals are bound to a fingerprint of everything shown at review, computed by the reviewing process rather than read back from storage. If the pending entry or proposal, or the curated entry it was based on, changes after review, promotion MUST fail rather than apply the newer content. Promotion MUST NOT depend on storage the proposing process can write, and the diff and review flags shown to the owner MUST be computed by the reviewing process, not read from that storage. Version numbers for a path MUST NOT restart (for example after an entry is retired and written again), so a version number always identifies one historical content.
 
 ### 2.3 Facts versus lessons
 
@@ -249,7 +249,7 @@ An implementation conforms at its fit-check tier when the applicable tests pass.
 | C9 | A planted secret never appears in a stored proposal, its diff, or a stored pending write | 2, 3 |
 | C10 | A proposal adding or removing commands, URLs, credentials, scope or permissions, or containing instruction-like text (including in its description), is flagged | 2, 3 |
 | C11 | Pending entries are never returned as curated memory, and memory text cannot break out of its context wrapper | all |
-| C12 | The owner promotes exactly what they reviewed: a later change to the pending entry or the curated base causes a conflict | all |
+| C12 | The owner promotes exactly what they reviewed: a later change to a pending entry, a proposal, or the curated base it was made against causes promotion to fail | all |
 
 Agent behaviour (reading the index first, opening files on demand) is checked by review, not by the suite.
 

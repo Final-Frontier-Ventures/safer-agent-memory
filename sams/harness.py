@@ -21,11 +21,14 @@ Framework adapters (Agent SDK, ADK, MCP, LangGraph...) should expose
 from __future__ import annotations
 
 import difflib
+import hashlib
+import hmac
 import html
+import json
 from typing import Any, Callable, Iterable
 
 from .backend import Backend, Entry
-from .errors import NotFound, PermissionDenied, ScopeError, VersionConflict
+from .errors import NotFound, PermissionDenied, ReviewMismatch, ScopeError, VersionConflict
 from .redact import redact, review_flags
 from .scopes import Scope, check_path
 
@@ -35,6 +38,17 @@ ACTIVE, PENDING, RETIRED = "active", "pending", "retired"
 def _public(entry: Entry, *, content: bool) -> dict[str, Any]:
     keys = ("path", "description", "version") + (("content",) if content else ())
     return {k: entry[k] for k in keys}
+
+
+def review_digest(proposal: dict[str, Any]) -> str:
+    """Fingerprint of everything the owner sees when reviewing a proposal.
+
+    Computed by the owner's own process from the proposal as shown, so a row
+    rewritten in storage after review no longer matches (C12).
+    """
+    shown = {k: proposal[k] for k in ("scope", "path", "description", "content", "base_version", "flags")}
+    blob = json.dumps(shown, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+    return hashlib.sha256(blob.encode("utf-8")).hexdigest()
 
 
 def _one_line(text: str) -> str:
@@ -312,15 +326,37 @@ class Owner:
         self._backend.delete(c, c, path, PENDING, session_id)
 
     # dreaming proposals
-    def proposals(self, scope: str, undecided_only: bool = True) -> list[dict[str, Any]]:
-        return self._backend.list_proposals(self._c(scope), undecided_only)
+    def _present(self, c: str, p: dict[str, Any]) -> dict[str, Any]:
+        """A proposal as the owner reviews it. The diff and flags are recomputed here from
+        the proposed content and the current curated entry, never trusted from storage the
+        dreaming job can write; stored flags are kept only as additions."""
+        current = self._backend.get(c, c, p["path"], ACTIVE)
+        diff, flags = review_diff(p["path"], current["content"] if current else "", p["content"])
+        flags = set(flags) | set(review_flags(p["description"] + "\n" + p.get("rationale", ""))) | set(p["flags"])
+        if any(e["path"] == p["path"] and e["tainted"] for e in self._backend.list(c, scope=c, statuses=(PENDING,))):
+            flags.add("tainted-source")
+        shown = {**p, "diff": diff, "flags": sorted(flags)}
+        return {**shown, "digest": review_digest(shown)}
 
-    def accept_proposal(self, scope: str, proposal_id: int) -> Entry:
-        """Apply a proposal. Raises VersionConflict if the entry changed after the proposal was made."""
+    def proposals(self, scope: str, undecided_only: bool = True) -> list[dict[str, Any]]:
+        """Proposals as reviewed: recomputed diff and flags, plus the `digest` to pass to accept_proposal."""
+        c = self._c(scope)
+        return [self._present(c, p) for p in self._backend.list_proposals(c, undecided_only)]
+
+    def accept_proposal(self, scope: str, proposal_id: int, reviewed_digest: str) -> Entry:
+        """Apply a proposal exactly as reviewed.
+
+        `reviewed_digest` is the proposal's `digest` as shown at review. Raises
+        ReviewMismatch if the proposal changed since, and VersionConflict if the
+        curated entry changed after the proposal was made.
+        """
         c = self._c(scope)
         p = self._backend.get_proposal(c, proposal_id)
         if p is None or p["decision"] is not None:
             raise NotFound(f"undecided proposal {proposal_id}")
+        p = self._present(c, p)
+        if not hmac.compare_digest(p["digest"], str(reviewed_digest)):
+            raise ReviewMismatch(f"proposal {proposal_id} changed after review; show it again before accepting")
         e = self.write(c, p["path"], p["content"], p["description"],
                        expected_version=p["base_version"], source=f"proposal:{proposal_id}",
                        tainted="tainted-source" in p["flags"])
