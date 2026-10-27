@@ -1,6 +1,6 @@
 # Memory profile: <project>
 
-Applies: Agent Memory Standard v0.1. Confirmed by owner: <name>, <date>.
+Applies: Safer Agent Memory Standard v0.1. Confirmed by owner: <name>, <date>.
 
 ## Shape
 
@@ -32,7 +32,7 @@ Applies: Agent Memory Standard v0.1. Confirmed by owner: <name>, <date>.
 
 - Cadence: <weekly per scope | at close-out>
 - Inputs: <run notes, pending writes, transcripts at ...>
-- Review surface: <ams review CLI | PR on dream/<date> branch | other>
+- Review surface: <sams review CLI | PR on dream/<date> branch | other>
 
 ## Retention
 

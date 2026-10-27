@@ -1,7 +1,7 @@
 """Storage backend contract.
 
 A backend stores memory entries and proposals. It does not decide who may do
-what: the harness (`ams.harness`) enforces roles, scopes, taint and status.
+what: the harness (`sams.harness`) enforces roles, scopes, taint and status.
 Backends SHOULD add their own enforcement as a second layer (database roles,
 row-level security, read-only files), so a bug in the harness is not enough to
 break the rules.

@@ -2,7 +2,7 @@
 
 <One paragraph: what this repo is and who uses it.>
 
-## Memory (Agent Memory Standard)
+## Memory (Safer Agent Memory Standard)
 
 - This file is curated project memory. Do not edit it; propose changes in `notes/` instead.
 - `memory/INDEX.md` lists curated memory files with one-line descriptions. Read the index; open a file only when it is relevant.

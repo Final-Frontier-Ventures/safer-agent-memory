@@ -1,10 +1,10 @@
-# Agent Memory Standard (AMS)
+# Safer Agent Memory Standard (SAMS)
 
 **Version:** 0.1.0 (draft) · **Status:** open for comment · **License:** CC BY 4.0
 
-AMS defines how AI agents keep durable memory safely: markdown memory in scoped tiers, written freely to a scratchpad, and promoted to curated memory only through a reviewed consolidation step ("dreaming"). It treats memory as an attack surface. A prompt injection that reaches memory stops being a one-off and becomes persistent, so AMS tracks taint, isolates tenants and puts a human review gate in front of every curated change.
+SAMS defines how AI agents keep durable memory safely: markdown memory in scoped tiers, written freely to a scratchpad, and promoted to curated memory only through a reviewed consolidation step ("dreaming"). It treats memory as an attack surface. A prompt injection that reaches memory stops being a one-off and becomes persistent, so SAMS tracks taint, isolates tenants and puts a human review gate in front of every curated change.
 
-AMS is framework- and vendor-neutral. It applies to agents built on any SDK, to MCP servers, and to coding assistants such as Claude Code.
+SAMS is framework- and vendor-neutral. It applies to agents built on any SDK, to MCP servers, and to coding assistants such as Claude Code.
 
 The key words MUST, MUST NOT, SHOULD, SHOULD NOT and MAY are to be read as described in RFC 2119.
 
@@ -156,7 +156,7 @@ Pick by where the agents run. All forms follow the same scopes and rules; only t
 
 A history table MUST receive the previous row on every update or delete. A proposals table holds `scope`, `path`, `diff`, `evidence`, `flags` and the review `decision`.
 
-Reference implementation: `ams/sqlite_store.py` (SQLite). A Postgres reference backend is planned for v0.2.
+Reference implementation: `sams/sqlite_store.py` (SQLite). A Postgres reference backend is planned for v0.2.
 
 ### 6.2 Roles
 
@@ -179,7 +179,7 @@ Agents MUST NOT be able to pass `tainted`, `author` or `status`.
 
 ### 6.4 Derived index for large repos
 
-A database file MUST NOT be committed as memory: binary changes cannot be reviewed, merged or diffed. Markdown remains the source of truth; a SQLite FTS index MAY be built from it, kept out of version control and rebuilt on demand (`ams index`).
+A database file MUST NOT be committed as memory: binary changes cannot be reviewed, merged or diffed. Markdown remains the source of truth; a SQLite FTS index MAY be built from it, kept out of version control and rebuilt on demand (`sams index`).
 
 ---
 

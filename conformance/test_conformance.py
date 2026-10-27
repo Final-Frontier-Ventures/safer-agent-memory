@@ -1,4 +1,4 @@
-"""AMS conformance tests C1-C11 (STANDARD.md section 9).
+"""SAMS conformance tests C1-C11 (STANDARD.md section 9).
 
 Each test name carries its requirement id. Tests only use the public harness
 API plus the backend fixture, so they apply to any backend.
@@ -11,7 +11,7 @@ import threading
 
 import pytest
 
-from ams import NotFound, PermissionDenied, VersionConflict
+from sams import NotFound, PermissionDenied, VersionConflict
 
 
 # C1 ---------------------------------------------------------------------

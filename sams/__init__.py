@@ -1,6 +1,6 @@
-"""Agent Memory Standard (AMS) reference implementation.
+"""Safer Agent Memory Standard (SAMS) reference implementation.
 
-    from ams import SQLiteBackend, AgentSession, DreamerSession, Owner
+    from sams import SQLiteBackend, AgentSession, DreamerSession, Owner
 
 See STANDARD.md for the normative rules this package enforces.
 """

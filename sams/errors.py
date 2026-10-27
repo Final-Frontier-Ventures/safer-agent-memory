@@ -1,8 +1,8 @@
-"""Exceptions raised by AMS. Every refusal is an exception, never a silent no-op."""
+"""Exceptions raised by SAMS. Every refusal is an exception, never a silent no-op."""
 
 
 class AMSError(Exception):
-    """Base class for all AMS errors."""
+    """Base class for all SAMS errors."""
 
 
 class PermissionDenied(AMSError):

@@ -30,7 +30,7 @@
     "SessionStart": [
       {
         "hooks": [
-          { "type": "command", "command": "ams index build . >/dev/null 2>&1 || true" }
+          { "type": "command", "command": "sams index build . >/dev/null 2>&1 || true" }
         ]
       }
     ]

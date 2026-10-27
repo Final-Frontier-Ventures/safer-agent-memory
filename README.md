@@ -1,12 +1,12 @@
-# Agent Memory Standard (AMS)
+# Safer Agent Memory Standard (SAMS)
 
 **Security-first memory for AI agents.** Scoped memory tiers, taint tracking, tenant isolation and human-reviewed consolidation, as a short standard, a zero-dependency Python reference implementation, a conformance test suite and a Claude Code plugin that applies it to your project.
 
-> Your agent's memory is a persistence mechanism for prompt injection. One poisoned web page, scan result or email, written to memory, is read by every future session. AMS is a set of rules and tests that stops that from happening.
+> Your agent's memory is a persistence mechanism for prompt injection. One poisoned web page, scan result or email, written to memory, is read by every future session. SAMS is a set of rules and tests that stops that from happening.
 
 ## Why
 
-Most agent memory projects focus on recall: how to store and find the right memory. AMS focuses on governance:
+Most agent memory projects focus on recall: how to store and find the right memory. SAMS focuses on governance:
 
 - **Scopes.** `org`, `project`, `tenant`, `run`. Agents write freely only to their own run scratchpad.
 - **Taint.** Sessions that read outsider-controlled content are marked by the harness, not the agent. Their writes never reach curated memory unreviewed.
@@ -14,14 +14,14 @@ Most agent memory projects focus on recall: how to store and find the right memo
 - **Dreaming.** A scheduled job reviews many sessions and proposes changes (redacted, flagged, with evidence). A human accepts or rejects each one.
 - **Guardrails.** Versioning with provenance, optimistic locking, permissions enforced below the agent.
 
-It builds on the context-engineering practices Anthropic has described publicly (memory as files, progressive disclosure, out-of-band consolidation) and adds the security controls needed when agents handle untrusted input and multiple tenants. AMS is vendor-neutral and works with any model or agent framework.
+It builds on the context-engineering practices Anthropic has described publicly (memory as files, progressive disclosure, out-of-band consolidation) and adds the security controls needed when agents handle untrusted input and multiple tenants. SAMS is vendor-neutral and works with any model or agent framework.
 
 ## What's in the repo
 
 | Path | What it is |
 | --- | --- |
 | [`STANDARD.md`](STANDARD.md) | The standard (MUST/SHOULD rules, ~10 minute read) |
-| [`ams/`](ams/) | Python reference implementation: harness, SQLite backend, redaction, CLI. Stdlib only |
+| [`sams/`](sams/) | Python reference implementation: harness, SQLite backend, redaction, CLI. Stdlib only |
 | [`conformance/`](conformance/) | Backend-agnostic tests C1-C11. Plug in your backend, run `pytest` |
 | [`skills/adopt-memory/`](skills/adopt-memory/SKILL.md) | Claude Code skill: inspects your repo and applies the standard |
 | [`templates/`](templates/) | Project profile, Claude Code setup, Docker Compose isolation, dreaming job and prompt |
@@ -43,11 +43,11 @@ Not using Claude Code? Give `STANDARD.md` to any coding agent and ask it to foll
 ### Use the library
 
 ```bash
-pip install agent-memory-standard        # or: pip install -e . from a clone
+pip install safer-agent-memory        # or: pip install -e . from a clone
 ```
 
 ```python
-from ams import SQLiteBackend, AgentSession, DreamerSession, Owner
+from sams import SQLiteBackend, AgentSession, DreamerSession, Owner
 
 backend = SQLiteBackend("memory", read_only=["org"])
 session = AgentSession(backend, session_id="s-001", agent="recon-agent", assigned="tenant:acme")
@@ -66,12 +66,12 @@ Agent writes to `run:s-001` land immediately. Writes to `tenant:acme` are queued
 
 ```bash
 python templates/dreaming/dream.py --base memory --scope tenant:acme --transcripts logs/acme
-ams review list   --base memory --scope tenant:acme
-ams review show   --base memory --scope tenant:acme 3
-ams review accept --base memory --scope tenant:acme 3
-ams pending list  --base memory --scope tenant:acme
-ams pending show  --base memory --scope tenant:acme waf.md s-001
-ams history       --base memory --scope tenant:acme methodology/waf.md
+sams review list   --base memory --scope tenant:acme
+sams review show   --base memory --scope tenant:acme 3
+sams review accept --base memory --scope tenant:acme 3
+sams pending list  --base memory --scope tenant:acme
+sams pending show  --base memory --scope tenant:acme waf.md s-001
+sams history       --base memory --scope tenant:acme methodology/waf.md
 ```
 
 ### Claude Code sessions only
@@ -100,14 +100,14 @@ pytest
 | C11 | Pending entries are never served as curated memory; memory text cannot escape its context wrapper |
 | C12 | The owner promotes exactly what they reviewed; later changes cause a conflict |
 
-To test another backend, implement `ams.backend.Backend` and add a factory to `conformance/conftest.py`.
+To test another backend, implement `sams.backend.Backend` and add a factory to `conformance/conftest.py`.
 
 ## Storage forms
 
 | Form | Use when |
 | --- | --- |
 | File-backed markdown in git | One repo or one agent, including coding-assistant memory |
-| File-backed + derived SQLite index (`ams index`) | Large repos where grep over memory gets noisy |
+| File-backed + derived SQLite index (`sams index`) | Large repos where grep over memory gets noisy |
 | SQLite, one directory per scope (`SQLiteBackend`) | All agents on one host; isolation via Docker mounts |
 | Postgres with row-level security | Agents across hosts or serverless (reference backend planned for v0.2) |
 

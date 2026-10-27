@@ -7,8 +7,8 @@ import stat
 
 import pytest
 
-from ams import AgentSession, Owner, PermissionDenied, SQLiteBackend
-from ams.file_index import build_index, search_index
+from sams import AgentSession, Owner, PermissionDenied, SQLiteBackend
+from sams.file_index import build_index, search_index
 
 
 def test_read_only_container_refused_by_backend(tmp_path):
@@ -54,7 +54,7 @@ def test_fts_query_injection_is_inert(tmp_path):
 
 
 def test_path_traversal_refused(tmp_path):
-    from ams import ScopeError
+    from sams import ScopeError
     s = AgentSession(SQLiteBackend(tmp_path), session_id="s1", agent="a", assigned="project:p")
     for bad in ("../x.md", "/etc/passwd", "a/../b.md"):
         with pytest.raises(ScopeError):
@@ -73,7 +73,7 @@ def test_file_index_build_and_search(tmp_path):
 
 
 def test_trailing_newline_ids_and_paths_refused(tmp_path):
-    from ams import ScopeError
+    from sams import ScopeError
     s = AgentSession(SQLiteBackend(tmp_path), session_id="s1", agent="a", assigned="project:p")
     for bad_scope in ("tenant:a\n", "run:s1\n"):
         with pytest.raises(ScopeError):
@@ -111,7 +111,7 @@ def test_file_index_labels_scratch(tmp_path):
     "123-45-6789",
 ])
 def test_redaction_catches_common_formats(secret):
-    from ams import redact
+    from sams import redact
     out, n = redact(f"context {secret} end")
     assert n >= 1
     for fragment in ("4eC39", "xxxxxxxxxx", "XXXXXXXX", "a0AfH6", "wJalrX", "hunter2",

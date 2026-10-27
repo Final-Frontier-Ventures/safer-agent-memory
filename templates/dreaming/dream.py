@@ -1,4 +1,4 @@
-"""Reference dreaming job for SQLite/`ams`-backed agents.
+"""Reference dreaming job for SQLite/`sams`-backed agents.
 
 Run on a schedule, once per container scope:
 
@@ -7,7 +7,7 @@ Run on a schedule, once per container scope:
 It builds the dreaming input (curated memory, pending writes, run notes and
 redacted transcripts), sends it to a model with dream-prompt.md, and stores
 the returned proposals through DreamerSession (which redacts and flags them
-again). It never writes memory. Review with `ams review list --base ... --scope ...`.
+again). It never writes memory. Review with `sams review list --base ... --scope ...`.
 
 `call_model` is the only provider-specific part. The default uses the
 Anthropic SDK (pip install anthropic); replace it for any other provider.
@@ -23,8 +23,8 @@ import re
 import uuid
 from pathlib import Path
 
-from ams import DreamerSession, SQLiteBackend
-from ams.redact import redact
+from sams import DreamerSession, SQLiteBackend
+from sams.redact import redact
 
 PROMPT = Path(__file__).with_name("dream-prompt.md").read_text(encoding="utf-8")
 MAX_INPUT_CHARS = 400_000  # keep the job inside its own token budget
@@ -35,7 +35,7 @@ def call_model(system: str, user: str) -> str:
 
     client = anthropic.Anthropic()
     msg = client.messages.create(
-        model=os.environ.get("AMS_DREAM_MODEL", "claude-sonnet-4-6"),
+        model=os.environ.get("SAMS_DREAM_MODEL", "claude-sonnet-4-6"),
         max_tokens=8000,
         system=system,
         messages=[{"role": "user", "content": user}],
@@ -110,7 +110,7 @@ def main() -> int:
             count += 1
         except Exception as exc:  # a bad proposal must not stop the rest
             print(f"skipped {item.get('path')!r}: {exc}")
-    print(f"{count} proposals stored for {a.scope}; review with: ams review list --base {a.base} --scope {a.scope}")
+    print(f"{count} proposals stored for {a.scope}; review with: sams review list --base {a.base} --scope {a.scope}")
     return 0
 
 

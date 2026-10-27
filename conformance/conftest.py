@@ -1,7 +1,7 @@
 """Backend adapter for the conformance suite.
 
 To test your own backend, add a factory to BACKENDS that returns a fresh,
-empty backend implementing ams.backend.Backend. Every test runs against
+empty backend implementing sams.backend.Backend. Every test runs against
 every factory listed here.
 """
 
@@ -11,7 +11,7 @@ import itertools
 
 import pytest
 
-from ams import AgentSession, DreamerSession, Owner, SQLiteBackend
+from sams import AgentSession, DreamerSession, Owner, SQLiteBackend
 
 
 def sqlite_backend(tmp_path):

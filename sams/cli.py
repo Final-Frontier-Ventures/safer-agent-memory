@@ -1,18 +1,18 @@
-"""`ams` command line: owner review, history and the derived file index.
+"""`sams` command line: owner review, history and the derived file index.
 
-    ams index build [ROOT]              build .memory.db from markdown memory
-    ams index search QUERY [--root R]   search it
-    ams redact FILE...                  print redacted copies (for transcripts)
-    ams review list   --base DIR --scope SCOPE
-    ams review show   --base DIR --scope SCOPE ID
-    ams review accept --base DIR --scope SCOPE ID
-    ams review reject --base DIR --scope SCOPE ID [--note TEXT]
-    ams pending list   --base DIR --scope SCOPE
-    ams pending show   --base DIR --scope SCOPE PATH SESSION
-    ams pending accept --base DIR --scope SCOPE PATH SESSION --version N
-    ams pending reject --base DIR --scope SCOPE PATH SESSION
-    ams history --base DIR --scope SCOPE PATH
-    ams restore --base DIR --scope SCOPE PATH VERSION
+    sams index build [ROOT]              build .memory.db from markdown memory
+    sams index search QUERY [--root R]   search it
+    sams redact FILE...                  print redacted copies (for transcripts)
+    sams review list   --base DIR --scope SCOPE
+    sams review show   --base DIR --scope SCOPE ID
+    sams review accept --base DIR --scope SCOPE ID
+    sams review reject --base DIR --scope SCOPE ID [--note TEXT]
+    sams pending list   --base DIR --scope SCOPE
+    sams pending show   --base DIR --scope SCOPE PATH SESSION
+    sams pending accept --base DIR --scope SCOPE PATH SESSION --version N
+    sams pending reject --base DIR --scope SCOPE PATH SESSION
+    sams history --base DIR --scope SCOPE PATH
+    sams restore --base DIR --scope SCOPE PATH VERSION
 """
 
 from __future__ import annotations
@@ -33,7 +33,7 @@ def _owner(a: argparse.Namespace) -> Owner:
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(prog="ams", description="Agent Memory Standard tools")
+    p = argparse.ArgumentParser(prog="sams", description="Safer Agent Memory Standard tools")
     sub = p.add_subparsers(dest="cmd", required=True)
 
     ix = sub.add_parser("index", help="derived search index over markdown memory")
@@ -48,7 +48,7 @@ def main(argv: list[str] | None = None) -> int:
     def store_args(sp: argparse.ArgumentParser) -> None:
         sp.add_argument("--base", required=True, help="directory holding the SQLite scope files")
         sp.add_argument("--scope", required=True)
-        sp.add_argument("--owner", default=os.environ.get("AMS_OWNER", "owner"))
+        sp.add_argument("--owner", default=os.environ.get("SAMS_OWNER", "owner"))
 
     rv = sub.add_parser("review", help="dreaming proposals")
     rvs = rv.add_subparsers(dest="action", required=True)
@@ -127,7 +127,7 @@ def main(argv: list[str] | None = None) -> int:
                   f"base=v{e['base_version']} author={e['author']} flags={','.join(e['flags']) or '-'}")
             print(f"description: {e['description']}")
             print(e["diff"])
-            print(f"accept with: ams pending accept --base {a.base} --scope {a.scope} {a.path} {a.session} --version {e['version']}")
+            print(f"accept with: sams pending accept --base {a.base} --scope {a.scope} {a.path} {a.session} --version {e['version']}")
         elif a.action == "accept":
             e = o.accept_pending(a.scope, a.path, a.session, a.version); print(f"accepted -> v{e['version']}")
         else:

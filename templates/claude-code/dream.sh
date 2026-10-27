@@ -9,7 +9,7 @@
 # 4. Never pushes and never touches the main branch. Review the branch like any PR.
 #
 # Cron example (Mondays 07:13):
-#   13 7 * * 1  /opt/ams/dream.sh /srv/repos/myproject 7 >> /var/log/ams-dream.log 2>&1
+#   13 7 * * 1  /opt/sams/dream.sh /srv/repos/myproject 7 >> /var/log/sams-dream.log 2>&1
 set -euo pipefail
 
 REPO="$(cd "${1:?usage: dream.sh REPO [DAYS]}" && pwd)"
@@ -28,7 +28,7 @@ WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 mapfile -t FILES < <(find "$TRANSCRIPTS_DIR" -name '*.jsonl' -mtime "-$DAYS" -type f)
 [ "${#FILES[@]}" -gt 0 ] || { echo "no sessions in the last $DAYS days"; exit 0; }
-ams redact --out "$WORK/transcripts" "${FILES[@]}"
+sams redact --out "$WORK/transcripts" "${FILES[@]}"
 
 cd "$REPO"
 git fetch --quiet 2>/dev/null || true

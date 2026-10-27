@@ -1,11 +1,11 @@
 ---
 name: adopt-memory
-description: Apply the Agent Memory Standard (AMS) to the current project - inspect it, write the memory profile, confirm open decisions with the owner, then build the right memory tier with taint tracking, tenant isolation and reviewed consolidation. Use when asked to "add agent memory", "adopt AMS", "set up memory for our agents", or "apply the memory standard".
+description: Apply the Safer Agent Memory Standard (SAMS) to the current project - inspect it, write the memory profile, confirm open decisions with the owner, then build the right memory tier with taint tracking, tenant isolation and reviewed consolidation. Use when asked to "add agent memory", "adopt SAMS", "set up memory for our agents", or "apply the memory standard".
 ---
 
-# Adopt the Agent Memory Standard
+# Adopt the Safer Agent Memory Standard
 
-You are applying AMS to the repository you are working in. The normative rules are in `STANDARD.md` at the root of this plugin (two directories above this file). Read it in full before doing anything else. Where this skill and the standard differ, the standard wins.
+You are applying SAMS to the repository you are working in. The normative rules are in `STANDARD.md` at the root of this plugin (two directories above this file). Read it in full before doing anything else. Where this skill and the standard differ, the standard wins.
 
 ## Rules for you while doing this
 
@@ -45,14 +45,14 @@ Copy `templates/memory-profile.md` from this plugin to `docs/memory-profile.md` 
 
 Each step should be usable and committed on its own.
 
-1. **Store.** Tier 1: create `memory/` with `INDEX.md` and the layout in STANDARD.md 6. Tier 2-3: use the `ams` Python package (`pip install agent-memory-standard`, or vendor `ams/` if the project cannot add dependencies) with `SQLiteBackend`, or implement `ams.backend.Backend` for the project's database. For Docker deployments start from `templates/docker-compose.sqlite.yml`.
+1. **Store.** Tier 1: create `memory/` with `INDEX.md` and the layout in STANDARD.md 6. Tier 2-3: use the `sams` Python package (`pip install safer-agent-memory`, or vendor `sams/` if the project cannot add dependencies) with `SQLiteBackend`, or implement `sams.backend.Backend` for the project's database. For Docker deployments start from `templates/docker-compose.sqlite.yml`.
 2. **Harness and tools.** Construct an `AgentSession` per agent session; expose only `session.tools()` / `session.tool_schemas()` to the model. Wrap every taint source with `session.tainting(...)`. In non-Python stacks, reproduce the same four tools and the same rules.
 3. **Agent wiring.** At session start, put `session.context_block()` (or the equivalent index) into context as data, not as system instructions. Tell agents to open entries on demand and to record process lessons in their run scope.
-4. **Dreaming.** Tier 2-3: a scheduled job per container scope that reads `DreamerSession.snapshot()` plus transcripts, and calls `propose()` with evidence and occurrence counts. Use `templates/dreaming/dream-prompt.md` as the job's prompt. The owner reviews with `ams review list/show/accept/reject`.
+4. **Dreaming.** Tier 2-3: a scheduled job per container scope that reads `DreamerSession.snapshot()` plus transcripts, and calls `propose()` with evidence and occurrence counts. Use `templates/dreaming/dream-prompt.md` as the job's prompt. The owner reviews with `sams review list/show/accept/reject`.
 5. **Coding-assistant hygiene.** Apply `templates/claude-code/` to the repo: lean `CLAUDE.md`, deny rules, `notes/`, and the transcript dreaming script.
 
 ## Step 5: Prove it
 
-- Tier 2-3 with the `ams` package: run `pytest conformance` from this plugin against the project's backend (add a factory to `conformance/conftest.py` if it is not SQLite).
+- Tier 2-3 with the `sams` package: run `pytest conformance` from this plugin against the project's backend (add a factory to `conformance/conftest.py` if it is not SQLite).
 - Custom implementations: port the tests C1-C11 in `conformance/test_conformance.py` to the project's test framework. Every applicable test must pass.
 - Report to the owner: tier chosen, files added, tests passing, and any requirement you could not meet with the reason.

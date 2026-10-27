@@ -1,4 +1,4 @@
-"""The harness: enforces AMS roles, scopes, taint and status on top of any backend.
+"""The harness: enforces SAMS roles, scopes, taint and status on top of any backend.
 
 Three roles (STANDARD.md section 6.2):
 

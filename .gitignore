@@ -7,3 +7,10 @@ dist/
 .memory.db
 .memory.tmp
 /memory/
+.env
+.env.*
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3

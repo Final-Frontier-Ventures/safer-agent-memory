@@ -5,9 +5,9 @@
 
 import tempfile
 
-from ams import AgentSession, DreamerSession, Owner, PermissionDenied, SQLiteBackend
+from sams import AgentSession, DreamerSession, Owner, PermissionDenied, SQLiteBackend
 
-base = tempfile.mkdtemp(prefix="ams-")
+base = tempfile.mkdtemp(prefix="sams-")
 owner = Owner(SQLiteBackend(base), name="lesith")
 owner.write("org", "methodology/reporting.md", "Lead every finding with business impact.", "Report style")
 

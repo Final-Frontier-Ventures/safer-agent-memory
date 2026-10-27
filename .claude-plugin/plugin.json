@@ -1,12 +1,12 @@
 {
-  "name": "agent-memory-standard",
+  "name": "safer-agent-memory",
   "version": "0.1.0",
-  "description": "Apply the Agent Memory Standard to a project: scoped memory tiers, taint tracking, tenant isolation and reviewed consolidation (dreaming).",
+  "description": "Apply the Safer Agent Memory Standard to a project: scoped memory tiers, taint tracking, tenant isolation and reviewed consolidation (dreaming).",
   "author": {
     "name": "Final Frontier Ventures",
     "url": "https://ffvlk.com"
   },
-  "homepage": "https://ffvlk.com",
+  "homepage": "https://github.com/Final-Frontier-Ventures/safer-agent-memory",
   "license": "Apache-2.0",
   "keywords": ["memory", "agents", "security", "prompt-injection"]
 }

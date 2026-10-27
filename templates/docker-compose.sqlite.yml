@@ -1,4 +1,4 @@
-# AMS SQLite-per-scope isolation on a single host (STANDARD.md section 6).
+# SAMS SQLite-per-scope isolation on a single host (STANDARD.md section 6).
 #
 # Layout under ./memory (created by SQLiteBackend):
 #   org/memory.db                       shared memory
@@ -9,7 +9,7 @@
 #   - org/ is read-only in every agent container
 #   - each agent container sees only its own tenant directory
 #   - the dreamer reads one tenant and writes only that tenant's proposals
-#   - only the owner tooling (ams review ...) runs against the whole ./memory
+#   - only the owner tooling (sams review ...) runs against the whole ./memory
 #
 # Mount directories, never single .db files: SQLite writes journal/WAL files
 # beside the database, and a single-file mount leaves them in the container.
@@ -22,8 +22,8 @@ services:
   agent-tenant-acme:
     <<: *agent
     environment:
-      AMS_BASE: /memory
-      AMS_ASSIGNED: tenant:acme
+      SAMS_BASE: /memory
+      SAMS_ASSIGNED: tenant:acme
     volumes:
       - ./memory/org:/memory/org:ro
       - ./memory/tenant-acme:/memory/tenant-acme
@@ -31,8 +31,8 @@ services:
   agent-tenant-globex:
     <<: *agent
     environment:
-      AMS_BASE: /memory
-      AMS_ASSIGNED: tenant:globex
+      SAMS_BASE: /memory
+      SAMS_ASSIGNED: tenant:globex
     volumes:
       - ./memory/org:/memory/org:ro
       - ./memory/tenant-globex:/memory/tenant-globex
@@ -41,8 +41,8 @@ services:
     image: your-dreamer-image:latest
     profiles: ["dreaming"]            # scheduled: docker compose run --rm dreamer-acme
     environment:
-      AMS_BASE: /memory
-      AMS_SCOPE: tenant:acme
+      SAMS_BASE: /memory
+      SAMS_SCOPE: tenant:acme
     volumes:
       # read-only in code via SQLiteBackend(base, read_only=["tenant:acme"]);
       # the mount stays writable so SQLite can share WAL state with the agents
@@ -51,5 +51,5 @@ services:
 
 # Notes
 # - Seed org memory once from the host:
-#     python -c "from ams import Owner, SQLiteBackend as B; Owner(B('memory')).write('org','README.md','Shared lessons go here.','Index of shared memory')"
+#     python -c "from sams import Owner, SQLiteBackend as B; Owner(B('memory')).write('org','README.md','Shared lessons go here.','Index of shared memory')"
 # - Do not put ./memory on a network filesystem. Move to Postgres when agents span hosts.

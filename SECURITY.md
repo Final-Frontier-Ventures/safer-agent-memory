@@ -1,6 +1,6 @@
 # Security policy
 
-AMS exists to make agent memory harder to abuse, so bypasses are the most valuable reports we can get.
+SAMS exists to make agent memory harder to abuse, so bypasses are the most valuable reports we can get.
 
 ## In scope
 
