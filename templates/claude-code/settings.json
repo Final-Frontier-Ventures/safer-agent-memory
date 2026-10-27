@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "deny": [
+      "Edit(./CLAUDE.md)",
+      "Write(./CLAUDE.md)",
+      "Edit(**/CLAUDE.md)",
+      "Write(**/CLAUDE.md)",
+      "Edit(~/.claude/CLAUDE.md)",
+      "Write(~/.claude/CLAUDE.md)",
+      "Edit(./memory/**)",
+      "Write(./memory/**)",
+      "Edit(./.claude/skills/**)",
+      "Write(./.claude/skills/**)",
+      "Edit(./.claude/commands/**)",
+      "Write(./.claude/commands/**)",
+      "Edit(./.claude/agents/**)",
+      "Write(./.claude/agents/**)",
+      "Edit(./.claude/settings.json)",
+      "Write(./.claude/settings.json)",
+      "Edit(./.claude/settings.local.json)",
+      "Write(./.claude/settings.local.json)",
+      "Edit(./.mcp.json)",
+      "Write(./.mcp.json)",
+      "Bash(sed -i:*)",
+      "Bash(tee:*)",
+      "Bash(perl -i:*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "ams index build . >/dev/null 2>&1 || true" }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,55 @@
+# AMS SQLite-per-scope isolation on a single host (STANDARD.md section 6).
+#
+# Layout under ./memory (created by SQLiteBackend):
+#   org/memory.db                       shared memory
+#   tenant-<id>/memory.db               one tenant, including its run notes
+#   proposals-tenant-<id>/proposals.db  that tenant's dreaming proposals
+#
+# Isolation comes from the mounts:
+#   - org/ is read-only in every agent container
+#   - each agent container sees only its own tenant directory
+#   - the dreamer reads one tenant and writes only that tenant's proposals
+#   - only the owner tooling (ams review ...) runs against the whole ./memory
+#
+# Mount directories, never single .db files: SQLite writes journal/WAL files
+# beside the database, and a single-file mount leaves them in the container.
+# In code, also pass read_only=["org"] to SQLiteBackend in agent containers.
+
+x-agent: &agent
+  image: your-agent-image:latest
+
+services:
+  agent-tenant-acme:
+    <<: *agent
+    environment:
+      AMS_BASE: /memory
+      AMS_ASSIGNED: tenant:acme
+    volumes:
+      - ./memory/org:/memory/org:ro
+      - ./memory/tenant-acme:/memory/tenant-acme
+
+  agent-tenant-globex:
+    <<: *agent
+    environment:
+      AMS_BASE: /memory
+      AMS_ASSIGNED: tenant:globex
+    volumes:
+      - ./memory/org:/memory/org:ro
+      - ./memory/tenant-globex:/memory/tenant-globex
+
+  dreamer-acme:
+    image: your-dreamer-image:latest
+    profiles: ["dreaming"]            # scheduled: docker compose run --rm dreamer-acme
+    environment:
+      AMS_BASE: /memory
+      AMS_SCOPE: tenant:acme
+    volumes:
+      # read-only in code via SQLiteBackend(base, read_only=["tenant:acme"]);
+      # the mount stays writable so SQLite can share WAL state with the agents
+      - ./memory/tenant-acme:/memory/tenant-acme
+      - ./memory/proposals-tenant-acme:/memory/proposals-tenant-acme
+
+# Notes
+# - Seed org memory once from the host:
+#     python -c "from ams import Owner, SQLiteBackend as B; Owner(B('memory')).write('org','README.md','Shared lessons go here.','Index of shared memory')"
+# - Do not put ./memory on a network filesystem. Move to Postgres when agents span hosts.
