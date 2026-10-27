@@ -31,7 +31,7 @@ pid = d.propose("waf.md", "WAF rate-limits above 20 rps; throttle fuzzers to 15 
 p = owner.proposals("tenant:acme")[0]
 print(f"\nproposal #{p['id']} flags={p['flags']}\n{p['diff']}")
 
-owner.accept_proposal("tenant:acme", pid)
+owner.accept_proposal("tenant:acme", pid, p["digest"])
 owner.reject_pending("tenant:acme", "waf.md", "s-001")
 owner.clear_runs("tenant:acme")
 print("curated:", owner.get("tenant:acme", "waf.md")["content"])

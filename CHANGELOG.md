@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+- **Security fix (C12):** accepting a dreaming proposal now requires the fingerprint shown at review (`Owner.accept_proposal(scope, id, reviewed_digest)`; CLI `sams review accept ... --digest`). Previously a proposal rewritten in storage after review, for example by a compromised dreaming job, was promoted with its new content. New `ReviewMismatch` error and `review_digest()` helper. Reported in a comment on our launch post.
+- Review now recomputes each proposal's diff and flags from the proposed content instead of trusting what the dreaming job stored, so a tampered proposal cannot hide its own flags.
+- C12 conformance tests now cover a proposal changed after review.
+
 ## 0.1.0 (draft)
 
 - Standard v0.1: scopes, status, guardrails, taint, tenant isolation, dreaming, storage forms, adoption procedure, conformance C1-C12.

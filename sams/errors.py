@@ -26,5 +26,13 @@ class VersionConflict(AMSError):
         )
 
 
+class ReviewMismatch(AMSError):
+    """What would be promoted is not what the owner reviewed (C12).
+
+    The proposal changed after review. Show it again, review the current
+    content, and accept with the new fingerprint.
+    """
+
+
 class NotFound(AMSError):
     """No entry, history version or proposal matches."""
