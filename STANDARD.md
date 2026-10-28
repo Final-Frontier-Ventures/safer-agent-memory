@@ -1,6 +1,6 @@
 # Safer Agent Memory Standard (SAMS)
 
-**Version:** 0.1.0 (draft) · **Status:** open for comment · **License:** CC BY 4.0
+**Version:** 0.1.1 (draft) · **Status:** open for comment · **License:** CC BY 4.0
 
 SAMS defines how AI agents keep durable memory safely: markdown memory in scoped tiers, written freely to a scratchpad, and promoted to curated memory only through a reviewed consolidation step ("dreaming"). It treats memory as an attack surface. A prompt injection that reaches memory stops being a one-off and becomes persistent, so SAMS tracks taint, isolates tenants and puts a human review gate in front of every curated change.
 
@@ -257,4 +257,5 @@ Agent behaviour (reading the index first, opening files on demand) is checked by
 
 ## Changelog
 
+- **0.1.1**: review integrity binds proposals to a fingerprint of what the owner reviewed, computed by the reviewing process; C12 covers a proposal changed after review.
 - **0.1.0**: initial draft.
