@@ -11,7 +11,7 @@ from .harness import AgentSession, DreamerSession, Owner, review_digest
 from .redact import redact, review_flags
 from .sqlite_store import SQLiteBackend
 
-__version__ = "0.1.1"
+__version__ = "0.2.0"
 
 
 def __getattr__(name: str):

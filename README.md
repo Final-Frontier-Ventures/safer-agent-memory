@@ -26,7 +26,7 @@ It builds on the context-engineering practices Anthropic has described publicly 
 | --- | --- |
 | [`STANDARD.md`](STANDARD.md) | The standard (MUST/SHOULD rules, ~10 minute read) |
 | [`sams/`](sams/) | Python reference implementation: harness, SQLite and Postgres backends, MCP server, redaction, CLI. Core is stdlib only |
-| [`conformance/`](conformance/) | Backend-agnostic tests C1-C11. Plug in your backend, run `pytest` |
+| [`conformance/`](conformance/) | Backend-agnostic tests C1-C12. Plug in your backend, run `pytest` |
 | [`skills/adopt-memory/`](skills/adopt-memory/SKILL.md) | Claude Code skill: inspects your repo and applies the standard |
 | [`templates/`](templates/) | Project profile, Claude Code setup, Docker Compose isolation, dreaming job and prompt |
 
@@ -171,12 +171,12 @@ To test another backend, implement `sams.backend.Backend` and add a factory to `
 
 ## Roadmap
 
-- v0.2 (unreleased): Postgres backend with RLS policies and Postgres in the conformance matrix (Supabase notes above, not yet tested there); MCP server exposing the four tools (`sams mcp`).
+- v0.2 (released): Postgres backend with RLS policies and Postgres in the conformance matrix (Supabase notes above, not yet tested there); MCP server exposing the four tools (`sams mcp`).
 - v0.3: TypeScript port of the harness; adapters for common agent frameworks.
 
 ## Status
 
-Draft (v0.1). The rules are stable enough to use; names and APIs may change before 1.0. Redaction and flagging are pattern-based safety nets, not guarantees; the human review gate is the control. Feedback and conformance reports from real deployments are the most useful contributions.
+Draft (v0.2; standard text 0.1.1). The rules are stable enough to use; names and APIs may change before 1.0. Redaction and flagging are pattern-based safety nets, not guarantees; the human review gate is the control. Feedback and conformance reports from real deployments are the most useful contributions.
 
 ## License
 
