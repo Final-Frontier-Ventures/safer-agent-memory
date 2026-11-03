@@ -252,3 +252,25 @@ def test_cli_reviews_postgres_proposals(sb, seeded, capsys):
     digest = out.split("--digest ")[1].split()[0]
     assert main(["review", "accept", *store, str(pid), "--digest", digest]) == 0
     assert seeded.get("tenant:a", "a.md")["content"] == "v2"
+
+
+@pytest.mark.parametrize("who", ["owner", "other-tenant-agent", "admin"])
+def test_mcp_refuses_a_login_that_does_not_match(sb, seeded, who, capsys):
+    from sams.cli import main
+    if who == "owner":
+        _, conninfo = sb.login("owner", "tenant:a")
+    elif who == "other-tenant-agent":
+        _, conninfo = sb.login("agent", "tenant:b")
+    else:
+        conninfo = DSN
+    code = main(["mcp", "--dsn", conninfo, "--schema", sb.schema, "--assigned", "tenant:a", "--agent", "a"])
+    assert code == 2
+    err = capsys.readouterr().err
+    assert "refusing to start" in err and "password" not in err
+
+
+def test_agent_login_check_accepts_the_right_login(sb, seeded):
+    backend, _ = sb.login("agent", "tenant:a")
+    backend.require_agent_login("tenant:a")
+    with pytest.raises(PermissionDenied):
+        backend.require_agent_login("tenant:b")

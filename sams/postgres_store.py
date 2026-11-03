@@ -401,6 +401,42 @@ class PostgresBackend:
             raise PermissionDenied(f"{c} is read-only for this process")
         return c
 
+    # ---- login checks --------------------------------------------------
+    def login_info(self) -> dict[str, Any]:
+        """Who this backend connects as: role, whether it bypasses RLS, and its SAMS grants."""
+        with self._conn() as conn:
+            role = conn.execute(
+                "SELECT current_user AS role, r.rolsuper AS superuser, r.rolbypassrls AS bypassrls "
+                "FROM pg_roles r WHERE r.rolname = current_user").fetchone()
+            owns = conn.execute(
+                "SELECT pg_has_role(current_user, c.relowner, 'USAGE') AS owns FROM pg_class c "
+                "JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = %s AND c.relname = 'memories'",
+                (self.schema,)).fetchone()
+            # explicit filter: a superuser or table owner would otherwise see every login's grants
+            grants = conn.execute(
+                f'SELECT kind, container FROM "{self.schema}".sams_grants WHERE role_name = current_user '
+                "ORDER BY kind, container").fetchall()
+        return {**role, "owns_tables": bool(owns and owns["owns"]),  # type: ignore[dict-item]
+                "grants": [(g["kind"], g["container"]) for g in grants]}
+
+    def require_agent_login(self, assigned: str) -> None:
+        """Refuse unless this login is an agent bound to exactly `assigned`, under row-level security.
+
+        Call before serving an agent, so a misconfigured DSN (an owner's, the
+        schema owner's, or another tenant's agent) fails loudly instead of
+        silently dropping the database layer of enforcement.
+        """
+        assigned = str(Scope.parse(assigned))
+        info = self.login_info()
+        who = info["role"]
+        if info["superuser"] or info["bypassrls"]:
+            raise PermissionDenied(f"login {who} bypasses row-level security; use the agent's own login")
+        if info["owns_tables"]:
+            raise PermissionDenied(f"login {who} owns the SAMS tables; use the agent's own login")
+        if info["grants"] != [("agent", assigned)]:
+            raise PermissionDenied(f"login {who} must hold exactly one agent grant for {assigned}; "
+                                   f"it holds {info['grants'] or 'none'}")
+
     # ---- entries -----------------------------------------------------
     def get(self, container, scope, path, status="active", pending_key=""):
         with self._conn() as conn:

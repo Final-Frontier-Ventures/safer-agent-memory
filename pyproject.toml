@@ -37,6 +37,7 @@ Changelog = "https://github.com/Final-Frontier-Ventures/safer-agent-memory/blob/
 Security = "https://github.com/Final-Frontier-Ventures/safer-agent-memory/blob/main/SECURITY.md"
 
 [project.optional-dependencies]
+mcp = ["mcp>=2.3,<3"]
 postgres = ["psycopg[binary]>=3.1"]
 test = ["pytest>=8"]
 

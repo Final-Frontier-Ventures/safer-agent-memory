@@ -25,7 +25,7 @@ It builds on the context-engineering practices Anthropic has described publicly 
 | Path | What it is |
 | --- | --- |
 | [`STANDARD.md`](STANDARD.md) | The standard (MUST/SHOULD rules, ~10 minute read) |
-| [`sams/`](sams/) | Python reference implementation: harness, SQLite and Postgres backends, redaction, CLI. Core is stdlib only |
+| [`sams/`](sams/) | Python reference implementation: harness, SQLite and Postgres backends, MCP server, redaction, CLI. Core is stdlib only |
 | [`conformance/`](conformance/) | Backend-agnostic tests C1-C11. Plug in your backend, run `pytest` |
 | [`skills/adopt-memory/`](skills/adopt-memory/SKILL.md) | Claude Code skill: inspects your repo and applies the standard |
 | [`templates/`](templates/) | Project profile, Claude Code setup, Docker Compose isolation, dreaming job and prompt |
@@ -102,6 +102,34 @@ session = AgentSession(backend, session_id="s-001", agent="recon-agent", assigne
 
 Review works the same with `--dsn` (or `SAMS_DSN`) in place of `--base`: `sams review list --dsn "$SAMS_DSN" --scope tenant:acme`. `schema_sql()` returns the DDL if you apply migrations with your own tool. On Supabase, create dedicated login roles for agents rather than using the `service_role` key, which bypasses row-level security.
 
+### MCP server
+
+`sams mcp` serves the four tools to one agent session over MCP (stdio), for any MCP host: Claude Code, Claude Desktop, agent SDKs.
+
+```bash
+pip install "safer-agent-memory[mcp]"
+```
+
+```json
+{
+  "mcpServers": {
+    "memory": {
+      "command": "sams",
+      "args": ["mcp", "--base", ".sams", "--assigned", "project:myapp", "--agent", "claude-code"]
+    }
+  }
+}
+```
+
+`.sams/` holds the SQLite files; keep it out of git (`templates/claude-code/gitignore-snippet` covers it), since database files must not be committed as memory. With Postgres, use `--dsn` or `SAMS_DSN` in place of `--base`, passed through the environment rather than `args`, so no password lands in a committed `.mcp.json`. The DSN must be the agent's own login: the server refuses to start unless that login holds exactly one agent grant for `--assigned` and does not bypass row-level security. Everything that decides what the session may do comes from this launch configuration, never from the model:
+
+- The tools are exactly `tool_schemas()`, and arguments are validated against them, so a model cannot pass `status`, `author` or `tainted`.
+- **Sessions start tainted.** The server cannot see the host's other tools (web fetch, file readers, other MCP servers), so every write to the assigned scope is flagged `tainted-source` for review. Pass `--untainted` only for a host with no outsider-controlled inputs.
+- No memory text goes into the server's instructions; memory reaches the model only as tool output.
+- The launch configuration (`.mcp.json` in Claude Code) is curated memory: an agent that can edit it can change its own scope or taint. `templates/claude-code/settings.json` already denies edits to it.
+
+One process serves one session; a shared HTTP server is not provided.
+
 ### Claude Code sessions only
 
 For a repo where the only "agent" is your coding assistant, copy `templates/claude-code/` into the repo: lean `CLAUDE.md`, deny rules on curated files, a `notes/` scratchpad, and `dream.sh`, a weekly job that proposes memory changes on a `dream/<date>` branch for you to review like a PR.
@@ -143,7 +171,7 @@ To test another backend, implement `sams.backend.Backend` and add a factory to `
 
 ## Roadmap
 
-- v0.2: Postgres backend with RLS policies and Postgres in the conformance matrix (done, unreleased; Supabase notes above, not yet tested there); MCP server exposing the four tools.
+- v0.2 (unreleased): Postgres backend with RLS policies and Postgres in the conformance matrix (Supabase notes above, not yet tested there); MCP server exposing the four tools (`sams mcp`).
 - v0.3: TypeScript port of the harness; adapters for common agent frameworks.
 
 ## Status

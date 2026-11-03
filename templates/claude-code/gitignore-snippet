@@ -1,5 +1,6 @@
 # Safer Agent Memory Standard
 .memory.db
 .memory.tmp
+.sams/
 # Uncomment in repos that handle client, tenant or personal data:
 # notes/
