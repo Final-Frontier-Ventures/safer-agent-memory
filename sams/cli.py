@@ -13,6 +13,7 @@
     sams pending reject --base DIR --scope SCOPE PATH SESSION
     sams history --base DIR --scope SCOPE PATH
     sams restore --base DIR --scope SCOPE PATH VERSION
+    sams mcp --base DIR --assigned SCOPE --agent NAME [--session-id ID] [--untainted]
 
 Review commands take --base DIR for the SQLite backend, or --dsn CONNINFO
 (or SAMS_DSN) for the Postgres backend; connect as a login with an owner grant.
@@ -44,6 +45,42 @@ def _store(a: argparse.Namespace) -> str:
         return f"--base {a.base}"
     dsn = '--dsn "$SAMS_DSN"' if a.dsn == os.environ.get("SAMS_DSN") else "--dsn <CONNINFO>"
     return dsn + (f" --schema {a.schema}" if a.schema != "sams" else "")
+
+
+def _mcp(a: argparse.Namespace, p: argparse.ArgumentParser) -> int:
+    import uuid
+
+    from .errors import AMSError
+    from .harness import AgentSession
+
+    if a.base and a.dsn and a.dsn == os.environ.get("SAMS_DSN"):
+        a.dsn = None
+    if not (a.base or a.dsn):
+        p.error("give --base DIR (SQLite) or --dsn CONNINFO / SAMS_DSN (Postgres)")
+    if a.dsn:
+        from .postgres_store import PostgresBackend
+        backend: object = PostgresBackend(a.dsn, schema=a.schema)
+        try:
+            backend.require_agent_login(a.assigned)  # type: ignore[attr-defined]
+        except AMSError as e:
+            print(f"sams mcp: refusing to start: {e}", file=sys.stderr)
+            return 2
+    else:
+        backend = SQLiteBackend(a.base, read_only=["org"])
+    try:
+        from . import mcp_server
+    except ImportError as e:
+        print(e, file=sys.stderr)
+        return 2
+    try:
+        session = AgentSession(backend, session_id=a.session_id or uuid.uuid4().hex, agent=a.agent,
+                               assigned=a.assigned)  # type: ignore[arg-type]
+    except AMSError as e:
+        p.error(str(e))
+    if not a.untainted:
+        session.mark_tainted(mcp_server.DEFAULT_TAINT_REASON)
+    mcp_server.run(session)
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -90,6 +127,18 @@ def main(argv: list[str] | None = None) -> int:
             sp.add_argument("--version", type=int, required=True,
                             help="pending version you reviewed (shown by 'pending show')")
 
+    m = sub.add_parser("mcp", help="serve the four memory tools to one agent session over MCP (stdio)")
+    mwhere = m.add_mutually_exclusive_group()
+    mwhere.add_argument("--base", help="directory holding the SQLite scope files (org is opened read-only)")
+    mwhere.add_argument("--dsn", default=os.environ.get("SAMS_DSN"),
+                        help="Postgres connection string for this agent's login (default: $SAMS_DSN)")
+    m.add_argument("--schema", default="sams", help="Postgres schema (default: sams)")
+    m.add_argument("--assigned", required=True, help="the one project:<id> or tenant:<id> this session may write")
+    m.add_argument("--agent", required=True, help="agent name stamped as author on every write")
+    m.add_argument("--session-id", help="run scratchpad id (default: random)")
+    m.add_argument("--untainted", action="store_true",
+                   help="start untainted; only for hosts with no outsider-controlled inputs")
+
     h = sub.add_parser("history"); store_args(h); h.add_argument("path")
     rs = sub.add_parser("restore"); store_args(rs); rs.add_argument("path"); rs.add_argument("version", type=int)
 
@@ -116,6 +165,9 @@ def main(argv: list[str] | None = None) -> int:
                 sys.stdout.write(text)
         print(f"redactions: {total}", file=sys.stderr)
         return 0
+
+    if a.cmd == "mcp":
+        return _mcp(a, p)
 
     if a.base and a.dsn and a.dsn == os.environ.get("SAMS_DSN"):
         a.dsn = None  # an explicit --base wins over SAMS_DSN from the environment
