@@ -156,7 +156,7 @@ Pick by where the agents run. All forms follow the same scopes and rules; only t
 
 A history table MUST receive the previous row on every update or delete. A proposals table holds `scope`, `path`, `diff`, `evidence`, `flags` and the review `decision`.
 
-Reference implementation: `sams/sqlite_store.py` (SQLite). A Postgres reference backend is planned for v0.2.
+Reference implementations: `sams/sqlite_store.py` (SQLite, one file per scope) and `sams/postgres_store.py` (Postgres, with row-level security binding each database login to one role and container).
 
 ### 6.2 Roles
 

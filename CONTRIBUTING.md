@@ -14,6 +14,6 @@ pip install -e ".[test]"
 pytest
 ```
 
-The `sams` package has no runtime dependencies; keep it that way. Every new rule in `STANDARD.md` should come with a test in `conformance/`.
+The core `sams` package has no runtime dependencies; keep it that way. A backend that needs a driver goes in an optional extra (like `[postgres]`) and is imported lazily, so `import sams` never needs it. To run the Postgres tests, see the Conformance section of the README. Every new rule in `STANDARD.md` should come with a test in `conformance/`.
 
 By contributing you agree that code is licensed under Apache-2.0 and text under CC BY 4.0.

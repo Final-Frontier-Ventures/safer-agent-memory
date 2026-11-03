@@ -13,6 +13,9 @@
     sams pending reject --base DIR --scope SCOPE PATH SESSION
     sams history --base DIR --scope SCOPE PATH
     sams restore --base DIR --scope SCOPE PATH VERSION
+
+Review commands take --base DIR for the SQLite backend, or --dsn CONNINFO
+(or SAMS_DSN) for the Postgres backend; connect as a login with an owner grant.
 """
 
 from __future__ import annotations
@@ -29,7 +32,18 @@ from .redact import redact
 
 
 def _owner(a: argparse.Namespace) -> Owner:
+    if a.dsn:
+        from .postgres_store import PostgresBackend
+        return Owner(PostgresBackend(a.dsn, schema=a.schema), name=a.owner)
     return Owner(SQLiteBackend(a.base), name=a.owner)
+
+
+def _store(a: argparse.Namespace) -> str:
+    """The store arguments to repeat in a suggested follow-up command (never the DSN itself)."""
+    if a.base:
+        return f"--base {a.base}"
+    dsn = '--dsn "$SAMS_DSN"' if a.dsn == os.environ.get("SAMS_DSN") else "--dsn <CONNINFO>"
+    return dsn + (f" --schema {a.schema}" if a.schema != "sams" else "")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -46,7 +60,11 @@ def main(argv: list[str] | None = None) -> int:
     r.add_argument("--out", help="write redacted files into this directory instead of stdout")
 
     def store_args(sp: argparse.ArgumentParser) -> None:
-        sp.add_argument("--base", required=True, help="directory holding the SQLite scope files")
+        where = sp.add_mutually_exclusive_group()
+        where.add_argument("--base", help="directory holding the SQLite scope files")
+        where.add_argument("--dsn", default=os.environ.get("SAMS_DSN"),
+                           help="Postgres connection string (default: $SAMS_DSN)")
+        sp.add_argument("--schema", default="sams", help="Postgres schema (default: sams)")
         sp.add_argument("--scope", required=True)
         sp.add_argument("--owner", default=os.environ.get("SAMS_OWNER", "owner"))
 
@@ -99,6 +117,10 @@ def main(argv: list[str] | None = None) -> int:
         print(f"redactions: {total}", file=sys.stderr)
         return 0
 
+    if a.base and a.dsn and a.dsn == os.environ.get("SAMS_DSN"):
+        a.dsn = None  # an explicit --base wins over SAMS_DSN from the environment
+    if not (a.base or a.dsn):
+        p.error("give --base DIR (SQLite) or --dsn CONNINFO / SAMS_DSN (Postgres)")
     o = _owner(a)
     if a.cmd == "review":
         if a.action == "list":
@@ -113,7 +135,7 @@ def main(argv: list[str] | None = None) -> int:
                                                  "rationale", "evidence")}, indent=2))
             print(pr["diff"])
             if pr["decision"] is None:
-                print(f"accept with: sams review accept --base {a.base} --scope {a.scope} {pr['id']} --digest {pr['digest']}")
+                print(f"accept with: sams review accept {_store(a)} --scope {a.scope} {pr['id']} --digest {pr['digest']}")
         elif a.action == "accept":
             e = o.accept_proposal(a.scope, a.id, a.digest); print(f"accepted -> {e['path']} v{e['version']}")
         else:
@@ -132,7 +154,7 @@ def main(argv: list[str] | None = None) -> int:
                   f"base=v{e['base_version']} author={e['author']} flags={','.join(e['flags']) or '-'}")
             print(f"description: {e['description']}")
             print(e["diff"])
-            print(f"accept with: sams pending accept --base {a.base} --scope {a.scope} {a.path} {a.session} --version {e['version']}")
+            print(f"accept with: sams pending accept {_store(a)} --scope {a.scope} {a.path} {a.session} --version {e['version']}")
         elif a.action == "accept":
             e = o.accept_pending(a.scope, a.path, a.session, a.version); print(f"accepted -> v{e['version']}")
         else:
