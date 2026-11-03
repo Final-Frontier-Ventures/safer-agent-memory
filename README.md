@@ -25,7 +25,7 @@ It builds on the context-engineering practices Anthropic has described publicly 
 | Path | What it is |
 | --- | --- |
 | [`STANDARD.md`](STANDARD.md) | The standard (MUST/SHOULD rules, ~10 minute read) |
-| [`sams/`](sams/) | Python reference implementation: harness, SQLite backend, redaction, CLI. Stdlib only |
+| [`sams/`](sams/) | Python reference implementation: harness, SQLite and Postgres backends, redaction, CLI. Core is stdlib only |
 | [`conformance/`](conformance/) | Backend-agnostic tests C1-C11. Plug in your backend, run `pytest` |
 | [`skills/adopt-memory/`](skills/adopt-memory/SKILL.md) | Claude Code skill: inspects your repo and applies the standard |
 | [`templates/`](templates/) | Project profile, Claude Code setup, Docker Compose isolation, dreaming job and prompt |
@@ -78,6 +78,30 @@ sams pending show  --base memory --scope tenant:acme waf.md s-001
 sams history       --base memory --scope tenant:acme methodology/waf.md
 ```
 
+### Postgres, with row-level security
+
+For agents on several hosts or serverless, use the Postgres backend. Row-level security binds each database login to one role and container, so the database itself enforces the scope and status rules: an agent login cannot read another tenant, write `org`, write `active` curated memory or touch proposals, and a dreaming login can only insert proposals, which no SAMS login can change afterwards (acceptance still re-checks the review fingerprint, so even a rewrite by the schema owner is refused). Provenance and taint (`author`, `source_session`, `tainted`) are still stamped by the harness; the database cannot verify them, so give agents only the harness tools, not raw SQL.
+
+```bash
+pip install "safer-agent-memory[postgres]"   # adds psycopg 3
+```
+
+```python
+from sams.postgres_store import PostgresBackend, install_schema, grant
+
+# Once, as the schema owner (an admin role your agents never use):
+install_schema(ADMIN_DSN)
+grant(ADMIN_DSN, "agent_acme", "agent", "tenant:acme")      # existing login roles
+grant(ADMIN_DSN, "dreamer_acme", "dreamer", "tenant:acme")
+grant(ADMIN_DSN, "alice", "owner", "*")
+
+# Each process connects as its own login:
+backend = PostgresBackend("postgresql://agent_acme:...@db/app")
+session = AgentSession(backend, session_id="s-001", agent="recon-agent", assigned="tenant:acme")
+```
+
+Review works the same with `--dsn` (or `SAMS_DSN`) in place of `--base`: `sams review list --dsn "$SAMS_DSN" --scope tenant:acme`. `schema_sql()` returns the DDL if you apply migrations with your own tool. On Supabase, create dedicated login roles for agents rather than using the `service_role` key, which bypasses row-level security.
+
 ### Claude Code sessions only
 
 For a repo where the only "agent" is your coding assistant, copy `templates/claude-code/` into the repo: lean `CLAUDE.md`, deny rules on curated files, a `notes/` scratchpad, and `dream.sh`, a weekly job that proposes memory changes on a `dream/<date>` branch for you to review like a PR.
@@ -88,6 +112,8 @@ For a repo where the only "agent" is your coding assistant, copy `templates/clau
 pip install -e ".[test]"
 pytest
 ```
+
+To include the Postgres backend, install `.[test,postgres]` and point `SAMS_TEST_POSTGRES_DSN` at a database where that login may create schemas and roles, for example `postgresql://postgres:postgres@localhost:5432/postgres`. Each test runs in its own schema as a non-superuser login, so row-level security is in force.
 
 | ID | Requirement |
 | --- | --- |
@@ -113,11 +139,11 @@ To test another backend, implement `sams.backend.Backend` and add a factory to `
 | File-backed markdown in git | One repo or one agent, including coding-assistant memory |
 | File-backed + derived SQLite index (`sams index`) | Large repos where grep over memory gets noisy |
 | SQLite, one directory per scope (`SQLiteBackend`) | All agents on one host; isolation via Docker mounts |
-| Postgres with row-level security | Agents across hosts or serverless (reference backend planned for v0.2) |
+| Postgres with row-level security (`PostgresBackend`) | Agents across hosts or serverless; isolation via database logins and RLS |
 
 ## Roadmap
 
-- v0.2: Postgres/Supabase backend with RLS policies; MCP server exposing the four tools; Postgres in the conformance matrix.
+- v0.2: Postgres backend with RLS policies and Postgres in the conformance matrix (done, unreleased; Supabase notes above, not yet tested there); MCP server exposing the four tools.
 - v0.3: TypeScript port of the harness; adapters for common agent frameworks.
 
 ## Status

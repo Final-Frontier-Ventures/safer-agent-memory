@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased (0.2.0)
+
+- **Postgres backend** (`sams.postgres_store.PostgresBackend`, optional extra `safer-agent-memory[postgres]`). All containers share one schema; row-level security binds each database login to one SAMS role and container through a `sams_grants` table, so the scope and status rules hold below the harness (provenance and taint are still stamped by the harness): agent logins read only `org` and their assigned container and write only `pending` rows or their run scratchpads; dreaming logins read one container and insert proposals only; owner logins can be limited to one container. Triggers assign version numbers (never restarting for a path), keep history, and make stored proposals immutable apart from a single decision. `install_schema()`, `grant()`, `revoke()` and `schema_sql()` set it up.
+- The conformance suite runs against Postgres when `SAMS_TEST_POSTGRES_DSN` is set, plus Postgres-specific tests that run raw SQL as agent and dreamer logins. CI runs them on Postgres 14 and 17.
+- CLI: review commands accept `--dsn` (or `SAMS_DSN`) and `--schema` for the Postgres backend.
+- Conformance factories may now yield a backend and clean up afterwards.
+
 ## 0.1.1
 
 - **Security fix (C12):** accepting a dreaming proposal now requires the fingerprint shown at review (`Owner.accept_proposal(scope, id, reviewed_digest)`; CLI `sams review accept ... --digest`). Previously a proposal rewritten in storage after review, for example by a compromised dreaming job, was promoted with its new content. New `ReviewMismatch` error and `review_digest()` helper. Reported in a comment on our launch post.

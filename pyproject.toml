@@ -12,7 +12,7 @@ license-files = ["LICENSE", "LICENSE-docs", "NOTICE"]
 authors = [{ name = "Final Frontier Ventures", email = "lesith@ffvlk.com" }]
 requires-python = ">=3.10"
 dependencies = []
-keywords = ["ai-agents", "memory", "llm", "prompt-injection", "ai-security", "claude-code", "mcp"]
+keywords = ["ai-agents", "memory", "postgres", "row-level-security", "llm", "prompt-injection", "ai-security", "claude-code", "mcp"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
@@ -37,6 +37,7 @@ Changelog = "https://github.com/Final-Frontier-Ventures/safer-agent-memory/blob/
 Security = "https://github.com/Final-Frontier-Ventures/safer-agent-memory/blob/main/SECURITY.md"
 
 [project.optional-dependencies]
+postgres = ["psycopg[binary]>=3.1"]
 test = ["pytest>=8"]
 
 [project.scripts]
